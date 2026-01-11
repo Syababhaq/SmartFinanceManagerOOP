@@ -61,3 +61,48 @@ src/main/java/com/mycompany/oopfinal/
 ├── View_Goals.java          # Financial Goal Tracker
 ├── View_Debt.java           # Debt Reduction Manager
 └── View_Budget.java         # Budget Limit Settings
+```
+## 🛠 Prerequisites
+Before running this project, ensure you have the following installed:
+
+* **Java Development Kit (JDK):** Version 17 or higher.
+* **Apache Maven:** For dependency management.
+* **IDE:** Apache NetBeans (Recommended), IntelliJ IDEA, or Eclipse.
+
+## 🚀 Installation & Running
+1.  **Clone or Download** this repository.
+2.  **Open the project** in your IDE (e.g., NetBeans).
+    * *File > Open Project > Select Folder*.
+3.  **Clean and Build** the project to download Maven dependencies.
+    * *Right-click Project > Clean and Build*.
+4.  **Run the Application**:
+    * Navigate to `src/main/java/com/mycompany/oopfinal/App.java`.
+    * Right-click `App.java` > **Run File**.
+
+## 💾 Data Storage
+This application uses a lightweight, text-based persistence system.
+
+* **File Name:** `finance_data.txt`
+* **Location:** Project Root Directory.
+* **Format:**
+    * The file uses a semi-colon (`;`) separated format.
+    * It is human-readable and editable.
+
+**Example Data:**
+```text
+USER;admin;123;admin@gmail.com
+CAT;Food;500.00
+GOAL;New Laptop;4000.00;1200.00
+DEBT;PTPTN;15000.00;2026-12-31
+TRANS;2024-01-15;Nasi Lemak;12.50;Food
+```
+
+## 🖼️ Screenshots
+1. Dashboard
+(Shows charts, summaries, and weekly trends)
+
+2. Transaction Log
+(Table view with add/edit functionality)
+
+3. Goal Tracker
+(Progress bars for financial targets)
