@@ -61,7 +61,7 @@ src/main/java/com/mycompany/oopfinal/
 ├── View_Transactions.java   # Transaction History & Entry
 ├── View_Goals.java          # Financial Goal Tracker
 ├── View_Debt.java           # Debt Reduction Manager
-├── View_FixedBudget.java    # Monthly Budget Settings
+├── View_FixedBudget.java    # Monthly Income Settings
 └── View_Budget.java         # Budget Limit Settings
 ```
 ## 🛠 Prerequisites
@@ -92,6 +92,7 @@ This application uses a lightweight, text-based persistence system.
 
 **Example Data:**
 ```text
+FIXED;1000.00;20.00;30.00;10.00
 USER;admin;123;admin@gmail.com
 CAT;Food;500.00
 GOAL;New Laptop;4000.00;1200.00
@@ -101,10 +102,11 @@ TRANS;2024-01-15;Nasi Lemak;12.50;Food
 
 ## 🖼️ Screenshots
 1. Dashboard
-(Shows charts, summaries, and weekly trends)
+<img width="1916" height="1028" alt="image" src="https://github.com/user-attachments/assets/244bee16-0a8a-4539-869c-0472afc7916f" />
 
 2. Transaction Log
-(Table view with add/edit functionality)
+<img width="1915" height="1028" alt="image" src="https://github.com/user-attachments/assets/877a7e55-402c-496f-91cf-ea98b7be3e60" />
 
 3. Goal Tracker
-(Progress bars for financial targets)
+<img width="1916" height="1027" alt="image" src="https://github.com/user-attachments/assets/f0112cf9-a2c2-4aa4-a681-4b8d7255b601" />
+
