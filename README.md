@@ -40,6 +40,7 @@ A comprehensive, desktop-based personal finance application built with **JavaFX*
 * **Visual Indicators:** Red highlighted amounts for outstanding balances.
 
 ### 🛑 Budget Planning
+* **Fixed Income:** Define monthly income and bills for auto allocation (e.g., Income, Insurance, Bills).
 * **Set Limits:** Define monthly spending limits for specific categories (e.g., Food, Transport).
 * **Dynamic Monitoring:** Progress bars change color from **Green** (Safe) to **Red** (Over Budget) automatically based on transaction data.
 
@@ -60,6 +61,7 @@ src/main/java/com/mycompany/oopfinal/
 ├── View_Transactions.java   # Transaction History & Entry
 ├── View_Goals.java          # Financial Goal Tracker
 ├── View_Debt.java           # Debt Reduction Manager
+├── View_FixedBudget.java    # Monthly Budget Settings
 └── View_Budget.java         # Budget Limit Settings
 ```
 ## 🛠 Prerequisites
