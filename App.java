@@ -7,11 +7,9 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        // --- FIX: LOAD DATA FIRST ---
-        // This reads the txt file into memory so the Login screen knows you exist.
-        DataStore.loadData(); 
+        // Load the list of users so Login works
+        DataStore.loadUserRegistry(); 
         
-        // Now show the Login Screen
         View_Login loginScreen = new View_Login(stage);
         loginScreen.show();
     }
