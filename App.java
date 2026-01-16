@@ -5,20 +5,24 @@ import javafx.stage.Stage;
 
 public class App extends Application {
 
+    private DataStore dataStore;
+
     @Override
     public void start(Stage stage) {
-        // Load the list of users so Login works
-        DataStore.loadUserRegistry(); 
-        
-        View_Login loginScreen = new View_Login(stage);
+        dataStore = new DataStore();
+
+        dataStore.loadUserRegistry();
+
+        Login loginScreen = new Login(stage, dataStore);
         loginScreen.show();
     }
 
     @Override
     public void stop() {
-        // Save everything when the app closes (Safety check)
         System.out.println("Application closing... Saving data.");
-        DataStore.saveData();
+        if (dataStore != null) {
+            dataStore.saveData();
+        }
     }
 
     public static void main(String[] args) {
