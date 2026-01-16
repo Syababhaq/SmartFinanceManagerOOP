@@ -52,17 +52,17 @@ The project follows a modular Object-Oriented design using the **Single-File Com
 
 ```text
 src/main/java/com/mycompany/oopfinal/
-├── App.java                 # Application Entry Point (Launch)
-├── DataStore.java           # Singleton Database (Handles Save/Load & Logic)
-├── MainLayout.java          # Main UI Shell (Sidebar, Navigation, Layout)
-├── View_Login.java          # Login Screen
-├── View_Register.java       # Registration Screen
-├── View_Dashboard.java      # Analytics & Overview Screen
-├── View_Transactions.java   # Transaction History & Entry
-├── View_Goals.java          # Financial Goal Tracker
-├── View_Debt.java           # Debt Reduction Manager
-├── View_FixedBudget.java    # Monthly Income Settings
-└── View_Budget.java         # Budget Limit Settings
+├── App.java            # Application Entry Point (Launch)
+├── DataStore.java      # Singleton Database (Handles Save/Load & Logic)
+├── MainLayout.java     # Main UI Shell (Sidebar, Navigation, Layout)
+├── Login.java          # Login Screen
+├── Register.java       # Registration Screen
+├── Dashboard.java      # Analytics & Overview Screen
+├── Transactions.java   # Transaction History & Entry
+├── Goals.java          # Financial Goal Tracker
+├── Debt.java           # Debt Reduction Manager
+├── FixedBudget.java    # Monthly Income Settings
+└── Budget.java         # Budget Limit Settings
 ```
 ## 🛠 Prerequisites
 Before running this project, ensure you have the following installed:
