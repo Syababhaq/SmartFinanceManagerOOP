@@ -17,70 +17,62 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
 
-public class View_Dashboard extends BorderPane {
+public class Dashboard extends BorderPane implements DataStore.Refreshable {
 
-    // --- STATE VARIABLES ---
     private LocalDate currentWeekStart;
     private BarChart<String, Number> barChart;
     private Label lblWeekRange;
+    private DataStore dataStore;
 
-    public View_Dashboard() {
+    public Dashboard(DataStore dataStore) {
+        this.dataStore = dataStore;
         setPadding(new Insets(20));
         setStyle("-fx-background-color: " + MainLayout.COL_BG + ";");
 
         currentWeekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
 
-        // === TITLE ===
         Label title = new Label("Financial Dashboard");
         title.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: " + MainLayout.COL_DARK + ";");
         setTop(title);
 
-        // === CENTER AREA ===
         VBox centerArea = new VBox(20);
         centerArea.setPadding(new Insets(20));
-        
-        // --- ROW 1: CHARTS (Pie + Bar) ---
+
         HBox chartsRow = new HBox(20);
         chartsRow.setAlignment(Pos.CENTER);
-        
+
         VBox pieSection = createPieChartSection();
-        VBox barSection = createBarChartSection(); 
-        
-        // Layout: 50% / 50%
+        VBox barSection = createBarChartSection();
+
         HBox.setHgrow(pieSection, Priority.ALWAYS);
         HBox.setHgrow(barSection, Priority.ALWAYS);
         pieSection.setMaxWidth(Double.MAX_VALUE);
         barSection.setMaxWidth(Double.MAX_VALUE);
         pieSection.setMaxHeight(Double.MAX_VALUE);
         barSection.setMaxHeight(Double.MAX_VALUE);
-        
+
         chartsRow.getChildren().addAll(pieSection, barSection);
 
-        // --- ROW 2: TRANSACTIONS + SUMMARY (NEW LAYOUT) ---
         HBox bottomRow = new HBox(20);
         bottomRow.setAlignment(Pos.CENTER);
 
-        // A. Transactions (Left)
         VBox recentSection = createRecentTransactionsSection();
-        HBox.setHgrow(recentSection, Priority.ALWAYS); // Give table more priority space
+        HBox.setHgrow(recentSection, Priority.ALWAYS);
         recentSection.setMaxWidth(Double.MAX_VALUE);
         recentSection.setMaxHeight(Double.MAX_VALUE);
 
-        // B. Financial Summary (Right) - NEW
         VBox summarySection = createFinancialSummarySection();
-        summarySection.setPrefWidth(300); // Fixed width for summary card
+        summarySection.setPrefWidth(300);
         summarySection.setMinWidth(280);
         summarySection.setMaxHeight(Double.MAX_VALUE);
 
         bottomRow.getChildren().addAll(recentSection, summarySection);
 
-        // Grow settings for Rows
         VBox.setVgrow(chartsRow, Priority.ALWAYS);
         VBox.setVgrow(bottomRow, Priority.ALWAYS);
 
         centerArea.getChildren().addAll(chartsRow, bottomRow);
 
-        // === RIGHT SIDEBAR ===
         VBox rightPane = createRightSummarySection();
         rightPane.setPrefWidth(320);
         rightPane.setMinWidth(300);
@@ -89,21 +81,43 @@ public class View_Dashboard extends BorderPane {
         setRight(rightPane);
     }
 
-    // --------------------------------------------------------------------------------
-    // SECTION 1: PIE CHART
-    // --------------------------------------------------------------------------------
+    public LocalDate getCurrentWeekStart() {
+        return currentWeekStart;
+    }
+
+    public void setCurrentWeekStart(LocalDate currentWeekStart) {
+        this.currentWeekStart = currentWeekStart;
+    }
+
+    public BarChart<String, Number> getBarChart() {
+        return barChart;
+    }
+
+    public void setBarChart(BarChart<String, Number> barChart) {
+        this.barChart = barChart;
+    }
+
+    public Label getLblWeekRange() {
+        return lblWeekRange;
+    }
+
+    public void setLblWeekRange(Label lblWeekRange) {
+        this.lblWeekRange = lblWeekRange;
+    }
+
     private VBox createPieChartSection() {
         VBox container = new VBox(10);
         container.setAlignment(Pos.CENTER);
-        container.setStyle("-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);");
+        container.setStyle(
+                "-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);");
         container.setPadding(new Insets(15));
 
         Map<String, Double> categoryTotals = new HashMap<>();
         double grandTotal = 0.0;
 
-        for (View_Transactions.Transaction t : DataStore.getInstance().transactions) {
-            categoryTotals.put(t.category, categoryTotals.getOrDefault(t.category, 0.0) + t.amount);
-            grandTotal += t.amount;
+        for (Transaction.TransactionItem t : dataStore.transactions) {
+            categoryTotals.put(t.getCategory(), categoryTotals.getOrDefault(t.getCategory(), 0.0) + t.getAmount());
+            grandTotal += t.getAmount();
         }
 
         ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
@@ -129,13 +143,11 @@ public class View_Dashboard extends BorderPane {
         return container;
     }
 
-    // --------------------------------------------------------------------------------
-    // SECTION 2: BAR CHART
-    // --------------------------------------------------------------------------------
     private VBox createBarChartSection() {
         VBox container = new VBox(10);
         container.setAlignment(Pos.CENTER);
-        container.setStyle("-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);");
+        container.setStyle(
+                "-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);");
         container.setPadding(new Insets(15));
 
         HBox header = new HBox(15);
@@ -158,8 +170,14 @@ public class View_Dashboard extends BorderPane {
         barChart.setMinHeight(200);
         VBox.setVgrow(barChart, Priority.ALWAYS);
 
-        btnPrev.setOnAction(e -> { currentWeekStart = currentWeekStart.minusWeeks(1); updateBarChart(); });
-        btnNext.setOnAction(e -> { currentWeekStart = currentWeekStart.plusWeeks(1); updateBarChart(); });
+        btnPrev.setOnAction(e -> {
+            currentWeekStart = currentWeekStart.minusWeeks(1);
+            updateBarChart();
+        });
+        btnNext.setOnAction(e -> {
+            currentWeekStart = currentWeekStart.plusWeeks(1);
+            updateBarChart();
+        });
         updateBarChart();
 
         container.getChildren().addAll(header, barChart);
@@ -174,14 +192,16 @@ public class View_Dashboard extends BorderPane {
         lblWeekRange.setText(currentWeekStart.format(rangeFmt) + " - " + weekEnd.format(rangeFmt));
 
         Map<LocalDate, Double> weekData = new TreeMap<>();
-        for (int i = 0; i < 7; i++) weekData.put(currentWeekStart.plusDays(i), 0.0);
-        for (View_Transactions.Transaction t : DataStore.getInstance().transactions) {
+        for (int i = 0; i < 7; i++)
+            weekData.put(currentWeekStart.plusDays(i), 0.0);
+        for (Transaction.TransactionItem t : dataStore.transactions) {
             try {
-                LocalDate tDate = LocalDate.parse(t.date);
+                LocalDate tDate = LocalDate.parse(t.getDate());
                 if (!tDate.isBefore(currentWeekStart) && !tDate.isAfter(weekEnd)) {
-                    weekData.put(tDate, weekData.get(tDate) + t.amount);
+                    weekData.put(tDate, weekData.get(tDate) + t.getAmount());
                 }
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
         DateTimeFormatter tickFmt = DateTimeFormatter.ofPattern("dd\nEEE");
         for (Map.Entry<LocalDate, Double> entry : weekData.entrySet()) {
@@ -190,32 +210,31 @@ public class View_Dashboard extends BorderPane {
         barChart.getData().add(series);
     }
 
-    // --------------------------------------------------------------------------------
-    // SECTION 3: RECENT TRANSACTIONS
-    // --------------------------------------------------------------------------------
     private VBox createRecentTransactionsSection() {
         VBox container = new VBox(10);
-        container.setStyle("-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);");
+        container.setStyle(
+                "-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);");
         container.setPadding(new Insets(15));
 
         Label title = new Label("Recent Transactions");
         title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
 
-        TableView<View_Transactions.Transaction> table = new TableView<>();
-        ObservableList<View_Transactions.Transaction> allData = DataStore.getInstance().transactions;
-        ObservableList<View_Transactions.Transaction> recentData = FXCollections.observableArrayList();
+        TableView<Transaction.TransactionItem> table = new TableView<>();
+        ObservableList<Transaction.TransactionItem> allData = dataStore.transactions;
+        ObservableList<Transaction.TransactionItem> recentData = FXCollections.observableArrayList();
         int start = Math.max(0, allData.size() - 5);
-        for(int i = allData.size() - 1; i >= start; i--) recentData.add(allData.get(i));
+        for (int i = allData.size() - 1; i >= start; i--)
+            recentData.add(allData.get(i));
 
         table.setItems(recentData);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         VBox.setVgrow(table, Priority.ALWAYS);
 
-        TableColumn<View_Transactions.Transaction, String> colDate = new TableColumn<>("Date");
+        TableColumn<Transaction.TransactionItem, String> colDate = new TableColumn<>("Date");
         colDate.setCellValueFactory(new PropertyValueFactory<>("date"));
-        TableColumn<View_Transactions.Transaction, String> colDesc = new TableColumn<>("Description");
+        TableColumn<Transaction.TransactionItem, String> colDesc = new TableColumn<>("Description");
         colDesc.setCellValueFactory(new PropertyValueFactory<>("desc"));
-        TableColumn<View_Transactions.Transaction, Double> colAmt = new TableColumn<>("Amount");
+        TableColumn<Transaction.TransactionItem, Double> colAmt = new TableColumn<>("Amount");
         colAmt.setCellValueFactory(new PropertyValueFactory<>("amount"));
         table.getColumns().addAll(colDate, colDesc, colAmt);
 
@@ -223,51 +242,46 @@ public class View_Dashboard extends BorderPane {
         return container;
     }
 
-    // --------------------------------------------------------------------------------
-    // SECTION 4: FINANCIAL SUMMARY (NEW)
-    // --------------------------------------------------------------------------------
     private VBox createFinancialSummarySection() {
         VBox container = new VBox(15);
-        container.setStyle("-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);");
+        container.setStyle(
+                "-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);");
         container.setPadding(new Insets(20));
         container.setAlignment(Pos.CENTER_LEFT);
 
         Label title = new Label("Total Summary");
         title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
 
-        DataStore ds = DataStore.getInstance();
-        
-        // 1. Calculate Totals
-        double income = ds.fixedIncome;
-        double fixedExpenses = ds.fixedBillings + ds.fixedInsurance + ds.fixedOther;
+        DataStore ds = dataStore;
+
+        double income = ds.getFixedIncome();
+        double fixedExpenses = ds.getFixedBillings() + ds.getFixedInsurance() + ds.getFixedOther();
         double variableExpenses = 0;
-        for(View_Transactions.Transaction t : ds.transactions) {
-            variableExpenses += t.amount;
+        for (Transaction.TransactionItem t : ds.transactions) {
+            variableExpenses += t.getAmount();
         }
-        
+
         double totalExpenses = fixedExpenses + variableExpenses;
         double netBalance = income - totalExpenses;
 
-        // 2. Create UI Rows
         VBox rows = new VBox(10);
-        rows.getChildren().add(createSummaryRow("Monthly Income", income, "#27ae60")); // Green
+        rows.getChildren().add(createSummaryRow("Monthly Income", income, "#27ae60"));
         rows.getChildren().add(new Separator());
         rows.getChildren().add(createSummaryRow("Fixed Budget", fixedExpenses, "#7f8c8d"));
         rows.getChildren().add(createSummaryRow("Transactions", variableExpenses, "#7f8c8d"));
-        rows.getChildren().add(createSummaryRow("Total Spending", totalExpenses, "#c0392b")); // Red
+        rows.getChildren().add(createSummaryRow("Total Spending", totalExpenses, "#c0392b"));
         rows.getChildren().add(new Separator());
-        
-        // Net Balance Row (Large)
+
         Label lblNetTitle = new Label("Net Savings");
         lblNetTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
-        
+
         Label lblNetVal = new Label(String.format("RM %.2f", netBalance));
         if (netBalance >= 0) {
-            lblNetVal.setStyle("-fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: #27ae60;"); // Green
+            lblNetVal.setStyle("-fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: #27ae60;");
         } else {
-            lblNetVal.setStyle("-fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: #e74c3c;"); // Red
+            lblNetVal.setStyle("-fx-font-weight: bold; -fx-font-size: 20px; -fx-text-fill: #e74c3c;");
         }
-        
+
         VBox netBox = new VBox(5, lblNetTitle, lblNetVal);
         netBox.setAlignment(Pos.CENTER);
         netBox.setPadding(new Insets(10, 0, 0, 0));
@@ -279,20 +293,17 @@ public class View_Dashboard extends BorderPane {
     private HBox createSummaryRow(String label, double value, String colorHex) {
         Label lbl = new Label(label);
         lbl.setStyle("-fx-text-fill: #34495e;");
-        
+
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        
+
         Label val = new Label(String.format("RM %.2f", value));
         val.setStyle("-fx-font-weight: bold; -fx-text-fill: " + colorHex + ";");
-        
+
         HBox row = new HBox(lbl, spacer, val);
         return row;
     }
 
-    // --------------------------------------------------------------------------------
-    // SECTION 5: RIGHT SIDEBAR
-    // --------------------------------------------------------------------------------
     private VBox createRightSummarySection() {
         VBox container = new VBox(15);
         container.setPadding(new Insets(20, 0, 0, 10));
@@ -310,8 +321,9 @@ public class View_Dashboard extends BorderPane {
 
     private VBox createScrollableBox(String titleStr, VBox contentList) {
         VBox box = new VBox(10);
-        box.setStyle("-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 0);");
-        box.setMaxHeight(Double.MAX_VALUE); 
+        box.setStyle(
+                "-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 0);");
+        box.setMaxHeight(Double.MAX_VALUE);
 
         Label title = new Label(titleStr);
         title.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2c3e50;");
@@ -329,20 +341,24 @@ public class View_Dashboard extends BorderPane {
 
     private VBox createBudgetList() {
         VBox list = new VBox(10);
-        if (DataStore.getInstance().budgetCategories.isEmpty()) {
+        if (dataStore.budgetCategories.isEmpty()) {
             Label placeholder = new Label("No budgets set.");
             placeholder.setStyle("-fx-text-fill: #7f8c8d;");
-            list.getChildren().add(placeholder); return list;
+            list.getChildren().add(placeholder);
+            return list;
         }
-        for (View_Budget.BudgetCategory b : DataStore.getInstance().budgetCategories) {
-            double spent = DataStore.getInstance().getSpentByCategory(b.name);
-            double progress = (b.limit > 0) ? spent / b.limit : 0;
-            Label name = new Label(b.name);
+        for (Budget.BudgetCategory b : dataStore.budgetCategories) {
+            double spent = dataStore.getSpentByCategory(b.getName());
+            double progress = (b.getLimit() > 0) ? spent / b.getLimit() : 0;
+            Label name = new Label(b.getName());
             name.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #2c3e50;");
             ProgressBar pb = new ProgressBar(progress);
             pb.setMaxWidth(Double.MAX_VALUE);
-            if (spent > b.limit) pb.setStyle("-fx-accent: #e74c3c;"); else pb.setStyle("-fx-accent: #27ae60;");
-            Label stats = new Label(String.format("RM %.2f / RM %.2f", spent, b.limit));
+            if (spent > b.getLimit())
+                pb.setStyle("-fx-accent: #e74c3c;");
+            else
+                pb.setStyle("-fx-accent: #27ae60;");
+            Label stats = new Label(String.format("RM %.2f / RM %.2f", spent, b.getLimit()));
             stats.setStyle("-fx-font-size: 10px; -fx-text-fill: grey;");
             VBox item = new VBox(2, name, pb, stats);
             list.getChildren().add(item);
@@ -352,19 +368,20 @@ public class View_Dashboard extends BorderPane {
 
     private VBox createGoalList() {
         VBox list = new VBox(10);
-        if (DataStore.getInstance().goals.isEmpty()) {
+        if (dataStore.goals.isEmpty()) {
             Label placeholder = new Label("No active goals.");
             placeholder.setStyle("-fx-text-fill: #7f8c8d;");
-            list.getChildren().add(placeholder); return list;
+            list.getChildren().add(placeholder);
+            return list;
         }
-        for (View_Goals.GoalItem g : DataStore.getInstance().goals) {
-            double progress = (g.target > 0) ? g.current / g.target : 0;
-            Label name = new Label(g.name);
+        for (Goal.GoalItem g : dataStore.goals) {
+            double progress = (g.getTarget() > 0) ? g.getCurrent() / g.getTarget() : 0;
+            Label name = new Label(g.getName());
             name.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #2c3e50;");
             ProgressBar pb = new ProgressBar(progress);
             pb.setMaxWidth(Double.MAX_VALUE);
             pb.setStyle("-fx-accent: #3498db;");
-            Label stats = new Label(String.format("RM %.2f / RM %.2f", g.current, g.target));
+            Label stats = new Label(String.format("RM %.2f / RM %.2f", g.getCurrent(), g.getTarget()));
             stats.setStyle("-fx-font-size: 10px; -fx-text-fill: grey;");
             VBox item = new VBox(2, name, pb, stats);
             list.getChildren().add(item);
@@ -374,21 +391,29 @@ public class View_Dashboard extends BorderPane {
 
     private VBox createDebtList() {
         VBox list = new VBox(10);
-        if (DataStore.getInstance().debts.isEmpty()) {
+        if (dataStore.debts.isEmpty()) {
             Label placeholder = new Label("Debt free!");
             placeholder.setStyle("-fx-text-fill: #7f8c8d;");
-            list.getChildren().add(placeholder); return list;
+            list.getChildren().add(placeholder);
+            return list;
         }
-        for (View_Debt.DebtItem d : DataStore.getInstance().debts) {
+        for (Debt.DebtItem d : dataStore.debts) {
             HBox item = new HBox();
-            Label name = new Label(d.name);
+            Label name = new Label(d.getName());
             name.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #2c3e50;");
-            Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
-            Label amount = new Label(String.format("RM %.2f", d.amount));
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            Label amount = new Label(String.format("RM %.2f", d.getAmount()));
             amount.setStyle("-fx-text-fill: #c0392b; -fx-font-weight: bold;");
             item.getChildren().addAll(name, spacer, amount);
             list.getChildren().add(item);
         }
         return list;
+    }
+
+    
+    @Override
+    public void refresh() {
+        updateBarChart();
     }
 }
