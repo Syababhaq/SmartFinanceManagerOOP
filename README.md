@@ -84,7 +84,7 @@ Before running this project, ensure you have the following installed:
 ## 💾 Data Storage
 This application uses a lightweight, text-based persistence system.
 
-* **File Name:** `finance_data.txt`
+* **File Name:** `user.txt and each user’s finance data in data_<username>.txt`
 * **Location:** Project Root Directory.
 * **Format:**
     * The file uses a semi-colon (`;`) separated format.
