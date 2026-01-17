@@ -1,0 +1,119 @@
+package com.mycompany.oopfinal;
+
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
+
+public class Register {
+
+    private Stage stage;
+    private DataStore dataStore;
+
+    public Register(Stage stage, DataStore dataStore) {
+        this.stage = stage;
+        this.dataStore = dataStore;
+    }
+
+    public Stage getStage() {
+        return stage;
+    }
+
+    public void setStage(Stage stage) {
+        this.stage = stage;
+    }
+
+    public DataStore getDataStore() {
+        return dataStore;
+    }
+
+    public void setDataStore(DataStore dataStore) {
+        this.dataStore = dataStore;
+    }
+
+    public void show() {
+        VBox root = new VBox(20);
+        root.setAlignment(Pos.CENTER);
+        root.setPadding(new Insets(30));
+        root.setStyle("-fx-background-color: " + MainLayout.COL_BG + ";");
+
+        Label title = new Label("Create Account");
+        title.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: " + MainLayout.COL_DARK + ";");
+
+        Label subtitle = new Label("Join Smart Finance Manager today");
+        subtitle.setStyle("-fx-text-fill: #7f8c8d; -fx-font-size: 14px;");
+
+        GridPane form = new GridPane();
+        form.setHgap(15);
+        form.setVgap(15);
+        form.setAlignment(Pos.CENTER);
+
+        TextField tfName = createStyledField("Full Name");
+        TextField tfEmail = createStyledField("Email Address");
+        PasswordField pfPass = new PasswordField();
+        pfPass.setPromptText("Password");
+        pfPass.setStyle("-fx-background-radius: 5; -fx-padding: 10; -fx-border-color: #bdc3c7; -fx-border-radius: 5;");
+        pfPass.setPrefWidth(250);
+
+        PasswordField pfConfirm = new PasswordField();
+        pfConfirm.setPromptText("Confirm Password");
+        pfConfirm.setStyle(
+                "-fx-background-radius: 5; -fx-padding: 10; -fx-border-color: #bdc3c7; -fx-border-radius: 5;");
+
+        form.add(new Label("Name:"), 0, 0);
+        form.add(tfName, 1, 0);
+        form.add(new Label("Email:"), 0, 1);
+        form.add(tfEmail, 1, 1);
+        form.add(new Label("Password:"), 0, 2);
+        form.add(pfPass, 1, 2);
+        form.add(new Label("Confirm:"), 0, 3);
+        form.add(pfConfirm, 1, 3);
+
+        Button btnRegister = new Button("Register Now");
+        btnRegister.setStyle("-fx-background-color: " + MainLayout.COL_ACCENT
+                + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 5;");
+        btnRegister.setPrefWidth(200);
+
+        Hyperlink linkLogin = new Hyperlink("Already have an account? Login here");
+        linkLogin.setStyle("-fx-text-fill: " + MainLayout.COL_ACCENT + ";");
+
+        btnRegister.setOnAction(e -> {
+            if (tfName.getText().isEmpty() || tfEmail.getText().isEmpty() || pfPass.getText().isEmpty()) {
+                new Alert(Alert.AlertType.ERROR, "Please fill in all fields.").show();
+                return;
+            }
+            if (!pfPass.getText().equals(pfConfirm.getText())) {
+                new Alert(Alert.AlertType.ERROR, "Passwords do not match.").show();
+                return;
+            }
+
+            boolean success = dataStore.registerUser(
+                    tfName.getText(),
+                    pfPass.getText(),
+                    tfEmail.getText());
+
+            if (success) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Account created! You can now login.");
+                alert.showAndWait();
+                new Login(stage, dataStore).show();
+            } else {
+                new Alert(Alert.AlertType.ERROR, "Username already exists. Try another.").show();
+            }
+        });
+
+        linkLogin.setOnAction(e -> new Login(stage, dataStore).show());
+
+        root.getChildren().addAll(title, subtitle, form, btnRegister, linkLogin);
+        stage.setScene(new Scene(root, 600, 500));
+    }
+
+    private TextField createStyledField(String prompt) {
+        TextField tf = new TextField();
+        tf.setPromptText(prompt);
+        tf.setPrefWidth(250);
+        tf.setStyle("-fx-background-radius: 5; -fx-padding: 10; -fx-border-color: #bdc3c7; -fx-border-radius: 5;");
+        return tf;
+    }
+}
